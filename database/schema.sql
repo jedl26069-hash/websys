@@ -2,8 +2,8 @@
 -- This SQL file creates the necessary tables for the Smart Adapter system
 
 -- Create database
-CREATE DATABASE IF NOT EXISTS smart_adapter_db;
-USE smart_adapter_db;
+CREATE DATABASE IF NOT EXISTS websystem_db;
+USE websystem_db;
 
 -- Adapters table - stores registered smart adapters
 CREATE TABLE IF NOT EXISTS adapters (

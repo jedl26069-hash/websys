@@ -5,7 +5,7 @@ header("Access-Control-Allow-Methods: POST");
 
 // Database connection
 $host = 'localhost';
-$db   = 'smart_adapter_db';
+$db   = 'websystem_db';
 $user = 'root';
 $pass = '';
 $charset = 'utf8mb4';

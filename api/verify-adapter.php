@@ -16,7 +16,7 @@ header('Access-Control-Allow-Headers: Content-Type');
 
 // Database configuration
 $host = 'localhost';
-$dbname = 'smart_adapter_db';
+$dbname = 'websystem_db';
 $username = 'your_db_username';
 $password = 'your_db_password';
 

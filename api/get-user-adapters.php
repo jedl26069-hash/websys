@@ -7,7 +7,7 @@ header("Content-Type: application/json; charset=UTF-8");
 
 // Database connection
 $host = 'localhost';
-$db_name = 'smart_adapter_db';
+$db_name = 'websystem_db';
 $username = 'root';
 $password = '';
 
