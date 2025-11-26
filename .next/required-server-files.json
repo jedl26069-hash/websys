@@ -4,7 +4,7 @@
     "env": {},
     "webpack": null,
     "eslint": {
-      "ignoreDuringBuilds": true
+      "ignoreDuringBuilds": false
     },
     "typescript": {
       "ignoreBuildErrors": true,
@@ -13,7 +13,7 @@
     "typedRoutes": false,
     "distDir": ".next",
     "cleanDistDir": true,
-    "assetPrefix": "/mysystem",
+    "assetPrefix": "",
     "cacheMaxMemorySize": 52428800,
     "configOrigin": "next.config.mjs",
     "useFileSystemPublicRoutes": true,
@@ -47,7 +47,7 @@
         256,
         384
       ],
-      "path": "/mysystem/_next/image",
+      "path": "/_next/image",
       "loader": "default",
       "loaderFile": "",
       "domains": [],
@@ -70,9 +70,9 @@
       "pagesBufferLength": 5
     },
     "amp": {
-      "canonicalBase": "/mysystem"
+      "canonicalBase": ""
     },
-    "basePath": "/mysystem",
+    "basePath": "",
     "sassOptions": {},
     "trailingSlash": false,
     "i18n": null,
@@ -90,7 +90,6 @@
     "compiler": {},
     "expireTime": 31536000,
     "staticPageGenerationTimeout": 60,
-    "output": "export",
     "modularizeImports": {
       "@mui/icons-material": {
         "transform": "@mui/icons-material/{{member}}"

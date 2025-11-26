@@ -2,16 +2,8 @@
   "version": 3,
   "pages404": true,
   "caseSensitive": false,
-  "basePath": "/mysystem",
+  "basePath": "",
   "redirects": [
-    {
-      "source": "/mysystem/",
-      "destination": "/mysystem",
-      "basePath": false,
-      "internal": true,
-      "statusCode": 308,
-      "regex": "^/mysystem/$"
-    },
     {
       "source": "/:path+/",
       "destination": "/:path+",
