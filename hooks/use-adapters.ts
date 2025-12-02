@@ -16,7 +16,7 @@ export function useAdapters() {
 
   const fetchAdapters = async () => {
     try {
-      const response = await fetch("/mysystem/api/adapters/list.php", {
+      const response = await fetch("http://localhost/mysystem/api/adapters/list.php", {
         credentials: "include",
       })
       if (response.ok) {
@@ -41,7 +41,7 @@ export function useAdapters() {
     }
 
     try {
-      const response = await fetch("/mysystem/api/adapters/add.php", {
+      const response = await fetch("http://localhost/mysystem/api/adapters/add.php", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         credentials: "include",
@@ -65,7 +65,7 @@ export function useAdapters() {
 
   const removeAdapter = async (id: string) => {
     try {
-      await fetch("/mysystem/api/adapters/delete.php", {
+      await fetch("http://localhost/mysystem/api/adapters/delete.php", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         credentials: "include",
@@ -80,7 +80,7 @@ export function useAdapters() {
 
   const updateLabel = async (id: string, label: string, location?: string) => {
     try {
-      const response = await fetch("/mysystem/api/adapters/update-label.php", {
+      const response = await fetch("http://localhost/mysystem/api/adapters/update-label.php", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         credentials: "include",

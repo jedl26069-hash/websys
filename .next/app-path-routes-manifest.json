@@ -1,7 +1,7 @@
 {
   "/favicon.ico/route": "/favicon.ico",
-  "/opengraph-image.png/route": "/opengraph-image.png",
   "/_not-found/page": "/_not-found",
-  "/page": "/",
-  "/add-adapter/page": "/add-adapter"
+  "/opengraph-image.png/route": "/opengraph-image.png",
+  "/add-adapter/page": "/add-adapter",
+  "/page": "/"
 }
