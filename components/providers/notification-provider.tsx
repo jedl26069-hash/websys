@@ -3,10 +3,11 @@
 import type React from "react"
 import { createContext, useContext, useState, useEffect } from "react"
 import type { Notification } from "@/types/dashboard"
+import { useUser } from "./user-provider"
 
 interface NotificationContextType {
   notifications: Notification[]
-  addNotification: (notification: Omit<Notification, "id" | "timestamp">) => void
+  addNotification: (notification: Omit<Notification, "id" | "timestamp" | "userId">) => void
   markAsRead: (id: string) => void
   deleteNotification: (id: string) => void
   clearAll: () => void
@@ -15,7 +16,7 @@ interface NotificationContextType {
 
 const NotificationContext = createContext<NotificationContextType | undefined>(undefined)
 
-const WELCOME_NOTIFICATION: Notification = {
+const WELCOME_NOTIFICATION = (userId: string): Notification => ({
   id: "welcome-1",
   title: "Welcome to Smart Adapter",
   message:
@@ -24,56 +25,78 @@ const WELCOME_NOTIFICATION: Notification = {
   type: "success",
   read: false,
   priority: "high",
-}
+  userId: userId,
+})
 
 export function NotificationProvider({ children }: { children: React.ReactNode }) {
+  const { userId, isInitialized } = useUser()
   const [notifications, setNotifications] = useState<Notification[]>([])
-  const [isInitialized, setIsInitialized] = useState(false)
+  const [providerInitialized, setProviderInitialized] = useState(false)
+
+  // Generate user-specific localStorage keys
+  const getUserNotificationsKey = (uid: string) => `smart_adapter_notifications_${uid}`
+  const getUserWelcomeKey = (uid: string) => `smart_adapter_welcome_shown_${uid}`
 
   useEffect(() => {
+    if (!isInitialized || !userId) return
+
     const initializeNotifications = () => {
       try {
-        // Check if welcome message has been shown before
-        const welcomeShown = localStorage.getItem("smart_adapter_welcome_shown")
-        const storedNotifications = localStorage.getItem("smart_adapter_notifications")
+        // Check if welcome message has been shown before for this user
+        const welcomeKey = getUserWelcomeKey(userId)
+        const notificationsKey = getUserNotificationsKey(userId)
+        
+        const welcomeShown = localStorage.getItem(welcomeKey)
+        const storedNotifications = localStorage.getItem(notificationsKey)
 
         let initialNotifications: Notification[] = []
 
         if (storedNotifications) {
-          initialNotifications = JSON.parse(storedNotifications)
+          try {
+            initialNotifications = JSON.parse(storedNotifications).filter(
+              (notif: Notification) => notif.userId === userId
+            )
+          } catch (e) {
+            console.error("Failed to parse stored notifications", e)
+          }
         }
 
-        // Only add welcome notification if it hasn't been shown AND we have no other notifications
-        // (or strictly if it hasn't been shown, depending on requirement.
-        // User said: "make it only create a welcome notification when a account is newly created")
+        // Only add welcome notification if it hasn't been shown for this user
         if (!welcomeShown) {
-          // It's a new "account" (browser session)
-          initialNotifications = [WELCOME_NOTIFICATION, ...initialNotifications]
-          localStorage.setItem("smart_adapter_welcome_shown", "true")
+          initialNotifications = [WELCOME_NOTIFICATION(userId), ...initialNotifications]
+          localStorage.setItem(welcomeKey, "true")
         }
 
         setNotifications(initialNotifications)
       } catch (e) {
         console.error("Failed to load notifications", e)
       } finally {
-        setIsInitialized(true)
+        setProviderInitialized(true)
       }
     }
 
     initializeNotifications()
-  }, [])
+  }, [userId, isInitialized])
 
   // Persist to localStorage whenever notifications change
   useEffect(() => {
-    // Only save if we have initialized to avoid overwriting with empty array on mount
-    if (isInitialized) {
-      localStorage.setItem("smart_adapter_notifications", JSON.stringify(notifications))
+    // Only save if we have initialized and have a userId
+    if (providerInitialized && userId) {
+      const notificationsKey = getUserNotificationsKey(userId)
+      const userNotifications = notifications.filter((notif) => notif.userId === userId)
+      localStorage.setItem(notificationsKey, JSON.stringify(userNotifications))
     }
-  }, [notifications, isInitialized])
+  }, [notifications, providerInitialized, userId])
 
-  const addNotification = (notification: Omit<Notification, "id" | "timestamp">) => {
+  const addNotification = (notification: Omit<Notification, "id" | "timestamp" | "userId">) => {
+    if (!userId) {
+      console.warn("Cannot add notification: userId not available")
+      return
+    }
+
     const newNotification: Notification = {
       ...notification,
+      userId: userId,
       id: `notif-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
       timestamp: new Date().toISOString(),
     }
@@ -89,18 +112,21 @@ export function NotificationProvider({ children }: { children: React.ReactNode }
   }
 
   const clearAll = () => {
-    setNotifications([])
+    setNotifications((prev) => prev.filter((notif) => notif.userId !== userId))
   }
+
+  // Filter notifications to only show current user's notifications
+  const userNotifications = notifications.filter((notif) => notif.userId === userId)
 
   return (
     <NotificationContext.Provider
       value={{
-        notifications,
+        notifications: userNotifications,
         addNotification,
         markAsRead,
         deleteNotification,
         clearAll,
-        isLoading: !isInitialized,
+        isLoading: !providerInitialized,
       }}
     >
       {children}
@@ -115,3 +141,4 @@ export function useNotifications() {
   }
   return context
 }
+

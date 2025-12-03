@@ -50,6 +50,7 @@ export interface Notification {
   read: boolean
   priority: "low" | "medium" | "high"
   adapterId?: string
+  userId: string
 }
 
 export interface WidgetData {

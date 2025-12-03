@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { Badge } from "@/components/ui/badge";
 import { Bullet } from "@/components/ui/bullet";
 import { AnimatePresence, motion, PanInfo } from "motion/react";
@@ -8,6 +8,7 @@ import NotificationItem from "./notification-item";
 import type { Notification } from "@/types/dashboard";
 import { SheetClose, SheetHeader, SheetTitle } from "@/components/ui/sheet";
 import { useIsV0 } from "@/lib/v0-context";
+import { useNotifications } from "@/components/providers/notification-provider";
 
 interface MobileNotificationsProps {
   initialNotifications: Notification[];
@@ -52,21 +53,37 @@ function SwipeableWrapper({ children, onDelete }: SwipeableWrapperProps) {
 export default function MobileNotifications({
   initialNotifications,
 }: MobileNotificationsProps) {
+  const contextNotifications = useNotifications();
   const [notifications, setNotifications] =
     useState<Notification[]>(initialNotifications);
 
   const isV0 = useIsV0();
 
-  const unreadCount = notifications.filter((n) => !n.read).length;
+  // Use context notifications if available, otherwise use local state
+  const displayNotifications = contextNotifications.notifications.length > 0 
+    ? contextNotifications.notifications 
+    : notifications;
+
+  const unreadCount = displayNotifications.filter((n) => !n.read).length;
 
   const markAsRead = (id: string) => {
-    setNotifications((prev) =>
-      prev.map((notif) => (notif.id === id ? { ...notif, read: true } : notif))
-    );
+    // Use context method if available, otherwise use local state
+    if (contextNotifications.notifications.length > 0) {
+      contextNotifications.markAsRead(id);
+    } else {
+      setNotifications((prev) =>
+        prev.map((notif) => (notif.id === id ? { ...notif, read: true } : notif))
+      );
+    }
   };
 
   const deleteNotification = (id: string) => {
-    setNotifications((prev) => prev.filter((notif) => notif.id !== id));
+    // Use context method if available, otherwise use local state
+    if (contextNotifications.notifications.length > 0) {
+      contextNotifications.deleteNotification(id);
+    } else {
+      setNotifications((prev) => prev.filter((notif) => notif.id !== id));
+    }
   };
 
   return (
@@ -94,13 +111,13 @@ export default function MobileNotifications({
 
       {/* Notifications List */}
       <div className="flex-1 overflow-y-auto overflow-x-clip p-2 space-y-2 bg-muted">
-        {notifications.length === 0 ? (
+        {displayNotifications.length === 0 ? (
           <div className="flex items-center justify-center h-32">
             <p className="text-sm text-muted-foreground">No notifications</p>
           </div>
         ) : (
           <AnimatePresence mode={isV0 ? "wait" : "popLayout"}>
-            {notifications.map((notification) => (
+            {displayNotifications.map((notification) => (
               <motion.div
                 key={notification.id}
                 layout
@@ -130,7 +147,7 @@ export default function MobileNotifications({
       </div>
 
       {/* Swipe Hint */}
-      {notifications.length > 0 && (
+      {displayNotifications.length > 0 && (
         <div className="p-4 border-t border-border">
           <p className="text-xs text-muted-foreground text-center">
             Swipe left to delete notifications
@@ -138,5 +155,7 @@ export default function MobileNotifications({
         </div>
       )}
     </div>
+  );
+}
   );
 }
