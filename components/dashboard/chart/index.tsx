@@ -2,7 +2,6 @@
 
 import * as React from "react";
 import { XAxis, YAxis, CartesianGrid, Area, AreaChart } from "recharts";
-
 import {
   ChartConfig,
   ChartContainer,
@@ -10,36 +9,72 @@ import {
   ChartTooltipContent,
 } from "@/components/ui/chart";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import mockDataJson from "@/mock.json";
 import { Bullet } from "@/components/ui/bullet";
-import type { MockData, TimePeriod } from "@/types/dashboard";
-
-const mockData = mockDataJson as MockData;
+import type { TimePeriod } from "@/types/dashboard";
+import { getVoltageHistory, getAdapters } from "@/lib/api";
+import { useContext } from "react";
+import { UserContext } from "@/components/providers/user-provider";
 
 type ChartDataPoint = {
   date: string;
-  spendings: number;
-  sales: number;
-  coffee: number;
+  voltage: number;
 };
 
 const chartConfig = {
-  spendings: {
-    label: "Spendings",
+  voltage: {
+    label: "Voltage (V)",
     color: "var(--chart-1)",
-  },
-  sales: {
-    label: "Sales",
-    color: "var(--chart-2)",
-  },
-  coffee: {
-    label: "Coffee",
-    color: "var(--chart-3)",
   },
 } satisfies ChartConfig;
 
 export default function DashboardChart() {
+  const userContext = useContext(UserContext);
+  const userId = userContext?.userId || "user-default";
+  
   const [activeTab, setActiveTab] = React.useState<TimePeriod>("week");
+  const [chartData, setChartData] = React.useState<ChartDataPoint[]>([]);
+  const [loading, setLoading] = React.useState(true);
+
+  React.useEffect(() => {
+    const loadVoltageData = async () => {
+      setLoading(true);
+      // Fetch voltage history for first adapter (gets all adapters and uses first available)
+      // In production, this should be tied to currently selected adapter
+      const adapters = await getAdapters(userId);
+      const adapterId = adapters.length > 0 ? adapters[0].adapter_id : "55555";
+      const history = await getVoltageHistory(adapterId, userId, 30);
+      
+      // Group and aggregate data by period
+      const dataByPeriod: Record<TimePeriod, ChartDataPoint[]> = {
+        week: [],
+        month: [],
+        year: [],
+      };
+
+      // Simple aggregation: group by date and average voltage
+      const grouped: Record<string, number[]> = {};
+      history.forEach((log) => {
+        const date = log.timestamp.split("T")[0];
+        if (!grouped[date]) grouped[date] = [];
+        grouped[date].push(log.voltage);
+      });
+
+      const aggregated = Object.entries(grouped).map(([date, voltages]) => ({
+        date,
+        voltage: Math.round((voltages.reduce((a, b) => a + b, 0) / voltages.length) * 100) / 100,
+      }));
+
+      // Assign to periods (week = last 7 days, month = last 30 days, year = all)
+      dataByPeriod.week = aggregated.slice(-7);
+      dataByPeriod.month = aggregated.slice(-30);
+      dataByPeriod.year = aggregated;
+
+      setChartData(dataByPeriod[activeTab] || []);
+      setLoading(false);
+    };
+
+    loadVoltageData();
+  }, [userId, activeTab]);
 
   const handleTabChange = (value: string) => {
     if (value === "week" || value === "month" || value === "year") {
@@ -48,20 +83,14 @@ export default function DashboardChart() {
   };
 
   const formatYAxisValue = (value: number) => {
-    // Hide the "0" value by returning empty string
-    if (value === 0) {
-      return "";
-    }
-
-    if (value >= 1000000) {
-      return `${(value / 1000000).toFixed(0)}M`;
-    } else if (value >= 1000) {
-      return `${(value / 1000).toFixed(0)}K`;
-    }
-    return value.toString();
+    if (value === 0) return "";
+    return `${value}V`;
   };
 
   const renderChart = (data: ChartDataPoint[]) => {
+    if (loading) return <div className="text-sm text-muted-foreground">Loading...</div>;
+    if (data.length === 0) return <div className="text-sm text-muted-foreground">No data available</div>;
+
     return (
       <div className="bg-accent rounded-lg p-3">
         <ChartContainer className="md:aspect-[3/1] w-full" config={chartConfig}>
@@ -76,39 +105,15 @@ export default function DashboardChart() {
             }}
           >
             <defs>
-              <linearGradient id="fillSpendings" x1="0" y1="0" x2="0" y2="1">
+              <linearGradient id="fillVoltage" x1="0" y1="0" x2="0" y2="1">
                 <stop
                   offset="5%"
-                  stopColor="var(--color-spendings)"
+                  stopColor="var(--color-voltage)"
                   stopOpacity={0.8}
                 />
                 <stop
                   offset="95%"
-                  stopColor="var(--color-spendings)"
-                  stopOpacity={0.1}
-                />
-              </linearGradient>
-              <linearGradient id="fillSales" x1="0" y1="0" x2="0" y2="1">
-                <stop
-                  offset="5%"
-                  stopColor="var(--color-sales)"
-                  stopOpacity={0.8}
-                />
-                <stop
-                  offset="95%"
-                  stopColor="var(--color-sales)"
-                  stopOpacity={0.1}
-                />
-              </linearGradient>
-              <linearGradient id="fillCoffee" x1="0" y1="0" x2="0" y2="1">
-                <stop
-                  offset="5%"
-                  stopColor="var(--color-coffee)"
-                  stopOpacity={0.8}
-                />
-                <stop
-                  offset="95%"
-                  stopColor="var(--color-coffee)"
+                  stopColor="var(--color-voltage)"
                   stopOpacity={0.1}
                 />
               </linearGradient>
@@ -134,7 +139,7 @@ export default function DashboardChart() {
               tickCount={6}
               className="text-sm fill-muted-foreground"
               tickFormatter={formatYAxisValue}
-              domain={[0, "dataMax"]}
+              domain={["dataMin - 10", "dataMax + 10"]}
             />
             <ChartTooltip
               cursor={false}
@@ -146,31 +151,11 @@ export default function DashboardChart() {
               }
             />
             <Area
-              dataKey="spendings"
+              dataKey="voltage"
               type="linear"
-              fill="url(#fillSpendings)"
+              fill="url(#fillVoltage)"
               fillOpacity={0.4}
-              stroke="var(--color-spendings)"
-              strokeWidth={2}
-              dot={false}
-              activeDot={{ r: 4 }}
-            />
-            <Area
-              dataKey="sales"
-              type="linear"
-              fill="url(#fillSales)"
-              fillOpacity={0.4}
-              stroke="var(--color-sales)"
-              strokeWidth={2}
-              dot={false}
-              activeDot={{ r: 4 }}
-            />
-            <Area
-              dataKey="coffee"
-              type="linear"
-              fill="url(#fillCoffee)"
-              fillOpacity={0.4}
-              stroke="var(--color-coffee)"
+              stroke="var(--color-voltage)"
               strokeWidth={2}
               dot={false}
               activeDot={{ r: 4 }}
@@ -194,19 +179,17 @@ export default function DashboardChart() {
           <TabsTrigger value="year">YEAR</TabsTrigger>
         </TabsList>
         <div className="flex items-center gap-6 max-md:order-1">
-          {Object.entries(chartConfig).map(([key, value]) => (
-            <ChartLegend key={key} label={value.label} color={value.color} />
-          ))}
+          <ChartLegend label="Voltage (V)" color="var(--chart-1)" />
         </div>
       </div>
       <TabsContent value="week" className="space-y-4">
-        {renderChart(mockData.chartData.week)}
+        {renderChart(chartData)}
       </TabsContent>
       <TabsContent value="month" className="space-y-4">
-        {renderChart(mockData.chartData.month)}
+        {renderChart(chartData)}
       </TabsContent>
       <TabsContent value="year" className="space-y-4">
-        {renderChart(mockData.chartData.year)}
+        {renderChart(chartData)}
       </TabsContent>
     </Tabs>
   );

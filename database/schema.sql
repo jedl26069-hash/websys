@@ -103,13 +103,18 @@ CREATE TABLE IF NOT EXISTS adapter_settings (
     UNIQUE KEY unique_adapter_user (adapter_id, user_id)
 );
 
--- Insert sample users for testing
+-- ========================================
+-- SAMPLE DATA FOR DEVELOPMENT/TESTING ONLY
+-- Remove or clear these tables before production deployment
+-- ========================================
+
+-- Insert sample users for development
 INSERT INTO users (user_id, username, email) VALUES
 ('user-123-abc', 'testuser1', 'test1@example.com'),
 ('user-456-def', 'testuser2', 'test2@example.com'),
 ('user-default', 'defaultuser', 'default@example.com');
 
--- Insert sample adapters for testing
+-- Insert sample adapters for development
 INSERT INTO adapters (adapter_id, user_id, label, location, model, max_voltage, status) VALUES
 ('55555', 'user-123-abc', 'Living Room TV', 'Living Room', 'SA-2025-X', 240.00, 'active'),
 ('1AAAA', 'user-123-abc', 'Bedroom AC', 'Master Bedroom', 'SA-2025-X', 240.00, 'active'),
@@ -118,7 +123,7 @@ INSERT INTO adapters (adapter_id, user_id, label, location, model, max_voltage, 
 ('333AA', 'user-default', 'Device 1', NULL, 'SA-2025-X', 240.00, 'active'),
 ('4444A', 'user-default', 'Device 2', NULL, 'SA-2025-PRO', 250.00, 'active');
 
--- Insert sample adapter settings
+-- Insert sample adapter settings for development
 INSERT INTO adapter_settings (adapter_id, user_id, surge_threshold, undervoltage_threshold, auto_shutoff, notifications_enabled) VALUES
 ('55555', 'user-123-abc', 240.00, 180.00, 1, 1),
 ('1AAAA', 'user-123-abc', 240.00, 180.00, 1, 1),

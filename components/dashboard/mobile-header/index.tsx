@@ -3,15 +3,10 @@ import { Badge } from "@/components/ui/badge"
 import { SidebarTrigger } from "@/components/ui/sidebar"
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet"
 import MobileNotifications from "@/components/dashboard/notifications/mobile-notifications"
-import type { MockData } from "@/types/dashboard"
 import BellIcon from "@/components/icons/bell"
 import MobileNotificationsWrapper from "./mobile-notifications-wrapper"
 
-interface MobileHeaderProps {
-  mockData: MockData
-}
-
-export function MobileHeader({ mockData }: MobileHeaderProps) {
+export function MobileHeader() {
   return (
     <MobileNotificationsWrapper>
       {(unreadCount) => (

@@ -1,0 +1,29 @@
+{
+  "dashboardStats": [
+    { "label": "Active Adapters", "value": "6", "description": "Total registered adapters", "intent": "positive", "icon": "atom", "tag": "live" },
+    { "label": "Alerts Today", "value": "2", "description": "Safety events", "intent": "negative", "icon": "bell" }
+  ],
+  "chartData": {
+    "week": [
+      { "date": "2025-11-26", "spendings": 120, "sales": 30, "coffee": 5 },
+      { "date": "2025-11-27", "spendings": 95, "sales": 25, "coffee": 3 }
+    ],
+    "month": [
+      { "date": "2025-11-01", "spendings": 2000, "sales": 600, "coffee": 50 }
+    ],
+    "year": [
+      { "date": "2025-01-01", "spendings": 24000, "sales": 7200, "coffee": 600 }
+    ]
+  },
+  "rebelsRanking": [
+    { "id": 1, "name": "Ada Lovelace", "handle": "@ada", "streak": "12d", "points": 420, "avatar": "/assets/avatars/1.png" }
+  ],
+  "securityStatus": [
+    { "title": "Grid", "value": "Stable", "status": "online", "variant": "success" }
+  ],
+  "notifications": [
+    { "id": "n1", "title": "Adapter Overload", "message": "Living Room TV reported overload.", "timestamp": "2025-12-03T10:00:00Z", "type": "warning", "read": false, "priority": "high", "adapterId": "55555", "userId": "user-123-abc" },
+    { "id": "n2", "title": "Voltage Normal", "message": "Kitchen Microwave back to normal.", "timestamp": "2025-12-03T09:30:00Z", "type": "info", "read": true, "priority": "low", "adapterId": "22AAA", "userId": "user-456-def" }
+  ],
+  "widgetData": { "location": "Home", "timezone": "UTC+0", "temperature": "22°C", "weather": "Clear", "date": "2025-12-03" }
+}

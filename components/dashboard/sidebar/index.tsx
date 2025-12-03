@@ -64,22 +64,16 @@ export function DashboardSidebar({ className, ...props }: React.ComponentProps<t
   useEffect(() => {
     const fetchUser = async () => {
       try {
-        const response = await fetch("/mysystem/api/auth/user.php", {
+        const response = await fetch("/api/auth/user.php", {
           credentials: "include",
         })
 
         if (response.ok) {
           const data = await response.json()
           setUser(data)
-        } else {
-          // If we get 401 (not authenticated), use demo data for preview
-          console.log("[v0] User API returned non-OK status, using demo data")
-          setUser({ username: "Demo User", email: "demo@example.com" })
         }
       } catch (error) {
-        console.error("[v0] Failed to fetch user:", error)
-        // Fallback to demo data if fetch fails
-        setUser({ username: "Demo User", email: "demo@example.com" })
+        console.error("Failed to fetch user:", error)
       }
     }
     fetchUser()
@@ -198,15 +192,14 @@ export function DashboardSidebar({ className, ...props }: React.ComponentProps<t
 const handleLogout = async () => {
   try {
     // Call the logout endpoint to destroy PHP session
-    await fetch("/mysystem/api/auth/logout.php", {
+    await fetch("/api/auth/logout.php", {
       method: "GET",
       credentials: "include",
     })
     // Redirect to login page
-    window.location.href = "/mysystem/api/auth/login.php"
+    window.location.href = "/api/auth/login.php"
   } catch (error) {
-    console.error("Logout error:", error)
-    // Fallback: redirect to login anyway
-    window.location.href = "/mysystem/api/auth/login.php"
+    // Redirect to login anyway
+    window.location.href = "/api/auth/login.php"
   }
 }

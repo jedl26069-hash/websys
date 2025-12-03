@@ -61,13 +61,4 @@ export interface WidgetData {
   date: string
 }
 
-export interface MockData {
-  dashboardStats: DashboardStat[]
-  chartData: ChartData
-  rebelsRanking: RebelRanking[]
-  securityStatus: SecurityStatus[]
-  notifications: Notification[]
-  widgetData: WidgetData
-}
-
 export type TimePeriod = "week" | "month" | "year"
